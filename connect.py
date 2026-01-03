@@ -1,80 +1,113 @@
-import sys , socket
-import time
+import socket
+import sys
 from colorama import Fore , Style , init
 
-Green = Fore.GREEN
-Red = Fore.RED
-Magenta = Fore.MAGENTA
-Reset = Style.RESET_ALL
+# global vars
 
-def typewritter(word):
-		for i in word:
-			sys.stdout.write(i)
-			time.sleep(0.01)
-			sys.stdout.flush()
+SUCCESS = Fore.GREEN
+ERROR = Fore.RED
+RESET = Style.RESET_ALL
+REPLY_SIZE: int = 4096
 
-def connect(ip , port):
-		s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
-		try:
-			banner = r"""
 
-###########################################
-#
-#	TCPNET -- Connect Everything Everywhere...
-#       ( Made By CTaha-1 )
-#
-############################################
+def clear() -> None:
+	import os
+	os.system("cls" if os.name == "nt" else "clear")
 
-"""
-			typewritter(f"{Magenta} {banner} {Reset}")
 
-			s.connect((ip , port))
 
-			typewritter(f"{Green}[OK] CONNECTED TO: {ip}:{port}\n{Reset}")
+def connect(ip: str , port: int , timeout: float):
+	sock = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+	sock.settimeout(timeout)
+
+	try:
+		connection_attempt: int = sock.connect_ex( (ip , port) )
+		
+		if connection_attempt == 0:
+			print(f"{SUCCESS}[*] Connection Established{RESET}")
 
 			while True:
-				data = input("➤  ")
+				
+				data = data_loop()
 
-				s.send(data.encode())
+				if data == "exit":
+					break
 
-				if data == "/quit" or data == "/exit":
-							break
-
-				received = s.recv(1024).decode(errors='ignore')
-
-				print(f"#############[SERVER RESPONSE]#############\n{received}\n##########################")
-
-
-		except Exception as exp:
-				typewritter(f"{Red}[ERROR] UNEXPECTED BEHAVIOR WHY ➤ {exp}{Reset}\n")
-				s.close()
-				choice = int(input("[ASK] Retry? ( 0 = y / 1 = n): "))
-
-				if choice == 0:
-						return connect(ip , port)
-				elif choice == 1:
-					typewritter("[EXIT] EXITED...\n")
-					exit()
+				elif data == "clear":
+					clear()
 
 				else:
-					typewritter(f"{Red}[UNKNOWN] UNKNOWN ➤ {choice}{Reset}")
-					choice = int(input("[ASK] Retry? ( 0 = y / 1 = n): "))
+					sock.send( data.encode() )
+	except Exception as exp:
+		print(f"{ERROR}Encountred an Error : {exp}{RESET}")
 
-		finally:
-			s.close()
+	finally:
+		sock.close()
 
 
-def main():
-		if len(sys.argv) < 2:
-				typewritter(f"Usage: python3 {sys.argv[0]} <ip> <port>\n")
-				return
+def data_loop():
+	data = input("(tcpnet) ::  ")
 
-		ip = str(sys.argv[1])
-		port = int(sys.argv[2])
-
-		connect(ip , port)
+	return data 
 
 
 
-if __name__ == '__main__':
-		main()
+def logo() -> None:
+	art: str = """ 
+
+	⠀⠀⠀⠀⠀⠀⠀⢀⠆⠀⢀⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡀⠀⠰⡀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⢠⡏⠀⢀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢷⡀⠀⢹⣄⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⣰⡟⠀⠀⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⠀⢻⣆⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⢠⣿⠁⠀⣸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣇⠀⠈⣿⡆⠀⠀⠀⠀
+	⠀⠀⠀⠀⣾⡇⠀⢀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡀⠀⢸⣿⠀⠀⠀⠀
+	⠀⠀⠀⢸⣿⠀⠀⣸⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣇⠀⠀⣿⡇⠀⠀⠀
+	⠀⠀⠀⣿⣿⠀⠀⣿⣿⣧⣤⣤⣤⣤⣤⣤⡀⠀⣀⠀⠀⣀⠀⢀⣤⣤⣤⣤⣤⣤⣼⣿⣿⠀⠀⣿⣿⠀⠀⠀
+	⠀⠀⢸⣿⡏⠀⠀⠀⠙⢉⣉⣩⣴⣶⣤⣙⣿⣶⣯⣦⣴⣼⣷⣿⣋⣤⣶⣦⣍⣉⡉⠋⠀⠀⠀⢸⣿⡇⠀⠀
+	⠀⠀⢿⣿⣷⣤⣶⣶⠿⠿⠛⠋⣉⡉⠙⢛⣿⣿⣿⣿⣿⣿⣿⣿⡛⠛⢉⣉⠙⠛⠿⠿⣶⣶⣤⣾⣿⡿⠀⠀
+	⠀⠀⠀⠙⠻⠋⠉⠀⠀⠀⣠⣾⡿⠟⠛⣻⣿⣿⣿⣿⣿⣿⣿⣿⣟⠛⠻⢿⣷⣄⠀⠀⠀⠉⠙⠟⠋⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⠿⠋⢀⣠⣾⠟⢫⣿⣿⣿⣿⣿⣿⡍⠻⣷⣄⡀⠙⠿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⣠⣴⡿⠛⠁⠀⢸⣿⣿⠋⠀⢸⣿⣿⣿⣿⣿⣿⡗⠀⠙⣿⣿⡇⠀⠈⠛⢿⣦⣄⠀⠀⠀⠀⠀
+	⢀⠀⣀⣴⣾⠟⠋⠀⠀⠀⠀⢸⣿⣿⠀⠀⢸⣿⣿⣿⣿⣿⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠙⠻⣷⣦⣀⠀⣀
+	⢸⣿⣿⠋⠁⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠈⣿⣿⣿⣿⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠈⠙⣿⣿⡟
+	⢸⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⢹⣿⣿⣿⣿⡏⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⡇
+	⢸⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⢿⣿⣿⡿⠀⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⡇
+	⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⠈⠿⠿⠁⠀⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀
+	⠀⢻⣿⡄⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⢀⣿⡟⠀
+	⠀⠘⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠃⠀
+	⠀⠀⠸⣷⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⣾⠏⠀⠀
+	⠀⠀⠀⢻⡆⠀⠀⠀⠀⠀⠀⠀⠸⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⠇⠀⠀⠀⠀⠀⠀⠀⢰⡟⠀⠀⠀
+	⠀⠀⠀⠀⢷⠀⠀⠀⠀⠀⠀⠀⠀⢿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⡾⠀⠀⠀⠀
+	⠀⠀⠀⠀⠈⢧⠀⠀⠀⠀⠀⠀⠀⠸⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠇⠀⠀⠀⠀⠀⠀⠀⡸⠁⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡆⠀⠀⠀⠀⠀⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢳⠀⠀⠀⠀⠀⠀⠀⠀⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠣⠀⠀⠀⠀⠀⠀⠜⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+[:: TCPNET -- Connect Everything EveryWhere ::]
+	"""
+
+
+	for char in art:
+		import time
+		sys.stdout.write(char)
+		time.sleep(0.002)
+		sys.stdout.flush()
+
+
+
+def main() -> None:
+	if len(sys.argv) < 4:
+		print(f"{ERROR}Usage: {sys.argv[0]} <ip> <port> <timeout>")
+		return 
+
+	ip = str(sys.argv[1])
+	port = int(sys.argv[2])
+	timeout = float(sys.argv[3])	
+
+
+	clear()
+	logo()
+	connect(ip , port , timeout)
+
+
+if __name__ == "__main__":
+	main()
