@@ -38,6 +38,11 @@ def connect(ip: str , port: int , timeout: float):
 
 				else:
 					sock.send( data.encode() )
+
+					RECEIVED = sock.recv(REPLY_SIZE).decode(errors='ignore')
+
+					print(f"({ip}:{port}) :: {RECEIVED}")
+	
 	except Exception as exp:
 		print(f"{ERROR}Encountred an Error : {exp}{RESET}")
 
