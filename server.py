@@ -1,83 +1,114 @@
-import sys , time , socket
+import subprocess
+import socket
 from colorama import Fore , Style , init
+import sys
 
-Green = Fore.GREEN
-Red = Fore.RED
-Magenta = Fore.MAGENTA
-Reset = Style.RESET_ALL
+# Global Vars
+SUCCESS = Fore.GREEN
+INTRESTING = Fore.YELLOW
+ERROR = Fore.RED
+RESET = Style.RESET_ALL
+REPLY_SIZE: int = 4096
 
-def typewritter(word):
-		for w in word :
-			sys.stdout.write(w)
-			time.sleep(0.02)
-			sys.stdout.flush()
 
-def serv(ip , port):
-	Serverbanner = r"""
+def serve(IP: str , PORT: int):
 
-#########################################################
-#
-#   TCPNET -- Connect Everything EveryWhere...
-#          ( Made By CTaha-1 )
-#
-#########################################################
-"""
-	typewritter(f"{Magenta}{Serverbanner}{Reset}")
+    sock = socket.socket(socket.AF_INET  , socket.SOCK_STREAM)
+    
+    try:
+        sock.bind((IP , PORT))
 
-	s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+        sock.listen()
 
-	try:
+        print(f"{SUCCESS}[+] Listening on Port : {PORT} \n {RESET}")
 
-		s.bind((ip , port))
+        conn , addr = sock.accept()
 
-		s.listen()
+        print(f"{INTRESTING}[:] Log ->  ADDRESS : {addr} is now connected{RESET}")
 
-		typewritter(f"{Green}[OK] SERVER IS LISTENING ON PORT {port}\n{Reset}")
+        while True:
+            data = conn.recv(REPLY_SIZE).decode(errors='ignore')
 
-		conn , addr = s.accept()
+            if data.lower() == "exit":
+                print(f"{INTRESTING}[:] Log -> ADDRESS : {addr} is now disconnected {RESET}")
 
-		while True:
-			data = conn.recv(1024).decode(errors='ignore')
-			if data == "/quit" or data == "/exit":
-					conn.send(typewritter("[CLOSE] SERVER IS CLOSED...").encode())
-					break
+            else:
+                output = subprocess.check_output(data)
 
-		else:
-			import subprocess
-			output = subprocess.check_output(data)
-			conn.send(output.encode())
+                conn.send(output)
 
-	except Exception as exp:
-			typewritter(f"{Red}[ERROR] UNEXPECT BEHAVIOR WHY ➤ {exp}\n{Reset}")
-			s.close()
-			choice = int(input("[ASK] Retry? ( 0 = y / 1 = n) : "))
+    except Exception as exp:
+        print(f"{ERROR}[X] Error -> {exp}{RESET}")
 
-			if choice == 0:
-				return serv(ip , port)
-
-			elif choice == 1:
-				typewritter("[EXITED] Exited Safely....\n")
-				exit()
-			else:
-				print(f"{Red}[UNKNOWN] UNKNOWN CHOICE: {choice}\n{Reset}") 
-				choice = int(input("[ASK] Retry? ( 0 = y / 1 = n) : "))
-
-	finally:
-		s.close()
+    finally:
+        sock.close()
 
 
 
-def main():
-		if len(sys.argv) < 2:
-			typewritter(f"Usage: python3 {sys.argv[0]} <ip> <port>\n")
-			return
-		ip = str(sys.argv[1])
-		port = int(sys.argv[2])
+# Ui compenents
 
-		serv(ip , port)
+
+def clear():
+    import os
+    os.system("cls" if os.name == 'nt' else "clear")
+
+
+def logo() -> None:
+	art: str = """ 
+
+	⠀⠀⠀⠀⠀⠀⠀⢀⠆⠀⢀⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡀⠀⠰⡀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⢠⡏⠀⢀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢷⡀⠀⢹⣄⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⣰⡟⠀⠀⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⠀⢻⣆⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⢠⣿⠁⠀⣸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣇⠀⠈⣿⡆⠀⠀⠀⠀
+	⠀⠀⠀⠀⣾⡇⠀⢀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡀⠀⢸⣿⠀⠀⠀⠀
+	⠀⠀⠀⢸⣿⠀⠀⣸⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣇⠀⠀⣿⡇⠀⠀⠀
+	⠀⠀⠀⣿⣿⠀⠀⣿⣿⣧⣤⣤⣤⣤⣤⣤⡀⠀⣀⠀⠀⣀⠀⢀⣤⣤⣤⣤⣤⣤⣼⣿⣿⠀⠀⣿⣿⠀⠀⠀
+	⠀⠀⢸⣿⡏⠀⠀⠀⠙⢉⣉⣩⣴⣶⣤⣙⣿⣶⣯⣦⣴⣼⣷⣿⣋⣤⣶⣦⣍⣉⡉⠋⠀⠀⠀⢸⣿⡇⠀⠀
+	⠀⠀⢿⣿⣷⣤⣶⣶⠿⠿⠛⠋⣉⡉⠙⢛⣿⣿⣿⣿⣿⣿⣿⣿⡛⠛⢉⣉⠙⠛⠿⠿⣶⣶⣤⣾⣿⡿⠀⠀
+	⠀⠀⠀⠙⠻⠋⠉⠀⠀⠀⣠⣾⡿⠟⠛⣻⣿⣿⣿⣿⣿⣿⣿⣿⣟⠛⠻⢿⣷⣄⠀⠀⠀⠉⠙⠟⠋⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⠿⠋⢀⣠⣾⠟⢫⣿⣿⣿⣿⣿⣿⡍⠻⣷⣄⡀⠙⠿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⣠⣴⡿⠛⠁⠀⢸⣿⣿⠋⠀⢸⣿⣿⣿⣿⣿⣿⡗⠀⠙⣿⣿⡇⠀⠈⠛⢿⣦⣄⠀⠀⠀⠀⠀
+	⢀⠀⣀⣴⣾⠟⠋⠀⠀⠀⠀⢸⣿⣿⠀⠀⢸⣿⣿⣿⣿⣿⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠙⠻⣷⣦⣀⠀⣀
+	⢸⣿⣿⠋⠁⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠈⣿⣿⣿⣿⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠈⠙⣿⣿⡟
+	⢸⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⢹⣿⣿⣿⣿⡏⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⡇
+	⢸⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⢿⣿⣿⡿⠀⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⡇
+	⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⠈⠿⠿⠁⠀⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀
+	⠀⢻⣿⡄⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⢀⣿⡟⠀
+	⠀⠘⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠃⠀
+	⠀⠀⠸⣷⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⣾⠏⠀⠀
+	⠀⠀⠀⢻⡆⠀⠀⠀⠀⠀⠀⠀⠸⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⠇⠀⠀⠀⠀⠀⠀⠀⢰⡟⠀⠀⠀
+	⠀⠀⠀⠀⢷⠀⠀⠀⠀⠀⠀⠀⠀⢿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⡾⠀⠀⠀⠀
+	⠀⠀⠀⠀⠈⢧⠀⠀⠀⠀⠀⠀⠀⠸⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠇⠀⠀⠀⠀⠀⠀⠀⡸⠁⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡆⠀⠀⠀⠀⠀⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢳⠀⠀⠀⠀⠀⠀⠀⠀⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠣⠀⠀⠀⠀⠀⠀⠜⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+[:: TCPNET -- Connect Everything EveryWhere ::]
+	"""
+
+
+	for char in art:
+		import time
+		sys.stdout.write(char)
+		time.sleep(0.002)
+		sys.stdout.flush()
+
+
+
+def main() -> None:
+	if len(sys.argv) < 3:
+		print(f"{ERROR}Usage: python3 {sys.argv[0]} <ip> <port>")
+		return 
+
+	ip = str(sys.argv[1])
+	port = int(sys.argv[2])	
+
+
+	clear()
+	logo()
+	serve(ip , port)
 
 
 if __name__ == "__main__":
-		main()
-
-
+	main()
+                

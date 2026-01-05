@@ -1,9 +1,8 @@
 import socket
 import sys
-from colorama import Fore , Style , init
+from colorama import Fore, Style, init
 
 # global vars
-
 SUCCESS = Fore.GREEN
 ERROR = Fore.RED
 RESET = Style.RESET_ALL
@@ -11,55 +10,53 @@ REPLY_SIZE: int = 4096
 
 
 def clear() -> None:
-	import os
-	os.system("cls" if os.name == "nt" else "clear")
+    import os
+    os.system("cls" if os.name == "nt" else "clear")
 
 
+def connect(ip: str, port: int, timeout: float):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
 
-def connect(ip: str , port: int , timeout: float):
-	sock = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
-	sock.settimeout(timeout)
+    try:
+        connection_attempt: int = sock.connect_ex((ip, port))
 
-	try:
-		connection_attempt: int = sock.connect_ex( (ip , port) )
-		
-		if connection_attempt == 0:
-			print(f"{SUCCESS}[*] Connection Established{RESET}")
+        if connection_attempt == 0:
+            print(f"{SUCCESS}[*] Connection Established{RESET}")
 
-			while True:
-				
-				data = data_loop()
+            while True:
+                data = data_loop()
 
-				if data == "exit":
-					break
+                if data == "exit":
+                    break
 
-				elif data == "clear":
-					clear()
+                elif data == "clear":
+                    clear()
 
-				else:
-					sock.send( data.encode() )
+                else:
+                    sock.send(data.encode())
+                    RECEIVED = sock.recv(REPLY_SIZE).decode(errors="ignore")
 
-					RECEIVED = sock.recv(REPLY_SIZE).decode(errors='ignore')
+                    if not RECEIVED:
+                        print(f"{ERROR} Connection has closed, please if it was on purpose{RESET}")
+                        break
+                    else:
+                        print(f"({ip}:{port}) :: {RECEIVED}")
 
-					print(f"({ip}:{port}) :: {RECEIVED}")
-	
-	except Exception as exp:
-		print(f"{ERROR}Encountred an Error : {exp}{RESET}")
+    except Exception as exp:
+        print(f"{ERROR}Encountred an Error : {exp}{RESET}")
 
-	finally:
-		sock.close()
+    finally:
+        sock.close()
 
 
 def data_loop():
-	data = input("(tcpnet) ::  ")
-
-	return data 
-
+    data = input("(tcpnet) ::  ")
+    return data
 
 
 def logo() -> None:
-	art: str = """ 
-
+    art: str = """ 
 	⠀⠀⠀⠀⠀⠀⠀⢀⠆⠀⢀⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡀⠀⠰⡀⠀⠀⠀⠀⠀⠀⠀
 	⠀⠀⠀⠀⠀⠀⢠⡏⠀⢀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢷⡀⠀⢹⣄⠀⠀⠀⠀⠀⠀
 	⠀⠀⠀⠀⠀⣰⡟⠀⠀⣼⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⠀⢻⣆⠀⠀⠀⠀⠀
@@ -88,31 +85,30 @@ def logo() -> None:
 	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠣⠀⠀⠀⠀⠀⠀⠜⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
 [:: TCPNET -- Connect Everything EveryWhere ::]
-	"""
 
+    """
 
-	for char in art:
-		import time
-		sys.stdout.write(char)
-		time.sleep(0.002)
-		sys.stdout.flush()
-
+    for char in art:
+        import time
+        sys.stdout.write(char)
+        time.sleep(0.002)
+        sys.stdout.flush()
 
 
 def main() -> None:
-	if len(sys.argv) < 4:
-		print(f"{ERROR}Usage: {sys.argv[0]} <ip> <port> <timeout>")
-		return 
+    if len(sys.argv) < 4:
+        print(f"{ERROR}Usage: {sys.argv[0]} <ip> <port> <timeout>{RESET}")
+        return
 
-	ip = str(sys.argv[1])
-	port = int(sys.argv[2])
-	timeout = float(sys.argv[3])	
+    ip = str(sys.argv[1])
+    port = int(sys.argv[2])
+    timeout = float(sys.argv[3])
 
-
-	clear()
-	logo()
-	connect(ip , port , timeout)
+    clear()
+    logo()
+    connect(ip, port, timeout)
 
 
 if __name__ == "__main__":
-	main()
+    main()
+
